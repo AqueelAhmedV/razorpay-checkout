@@ -120,6 +120,7 @@
                 image: window.location.origin + '/logo.png',
                 handler: async function (response) {
                     // Payment successful
+                    alert(callbackUrl);
                     try {
                         const verifyPaymentResponse = await fetch(callbackUrl, {
                             method: 'POST',
