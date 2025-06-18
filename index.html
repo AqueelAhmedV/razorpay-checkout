@@ -119,14 +119,15 @@
                 name: planName,
                 description: planDescription,
                 image: window.location.origin + '/logo.png',
-                handler: function (response) {
-                    // Payment successful
-                    console.log('Payment successful:', response);
+                callback_url: callbackUrl,
+                // handler: function (response) {
+                //     // Payment successful
+                //     console.log('Payment successful:', response);
                     
-                    // Redirect to success page with payment details
-                    const successUrl = `success.html?subscription_id=${subscriptionId}&payment_id=${response.razorpay_payment_id}&signature=${response.razorpay_signature}&callback_url=${encodeURIComponent(callbackUrl)}`;
-                    window.location.href = successUrl;
-                },
+                //     // Redirect to success page with payment details
+                //     const successUrl = `success.html?subscription_id=${subscriptionId}&payment_id=${response.razorpay_payment_id}&signature=${response.razorpay_signature}&callback_url=${encodeURIComponent(callbackUrl)}`;
+                //     window.location.href = successUrl;
+                // },
                 prefill: {
                     // You can prefill customer details if available from query params
                     name: getQueryParam('customer_name') || '',
@@ -140,16 +141,16 @@
                 theme: {
                     color: themeColor
                 },
-                modal: {
-                    ondismiss: function() {
-                        // Payment cancelled/dismissed
-                        console.log('Payment cancelled');
+                // modal: {
+                //     ondismiss: function() {
+                //         // Payment cancelled/dismissed
+                //         console.log('Payment cancelled');
                         
-                        // Redirect to failure page
-                        const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=cancelled&callback_url=${encodeURIComponent(callbackUrl)}`;
-                        window.location.href = failureUrl;
-                    }
-                }
+                //         // Redirect to failure page
+                //         const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=cancelled&callback_url=${encodeURIComponent(callbackUrl)}`;
+                //         window.location.href = failureUrl;
+                //     }
+                // }
             };
 
             // Create Razorpay instance and open checkout
