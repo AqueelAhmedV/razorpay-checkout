@@ -157,6 +157,7 @@
                             throw new Error('Failed to verify payment');
                         }
                         const verifyPaymentData = await verifyPaymentResponse.json();
+                        alert(verifyPaymentData);
                         if (verifyPaymentData['is_payment_verified'] === true) {
                             window.location.href = createSuccessUrl(response.razorpay_payment_id, response.razorpay_signature);
                         } else {
