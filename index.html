@@ -145,7 +145,7 @@
                         }
                     } catch (error) {
                         console.error('Error verifying payment:', error);
-                        showError('Failed to verify payment. Please try again.');
+                        showError('Failed to verify payment. Please try again. ' + error);
                         const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=payment_verification_failed&error_code=${response.error.code}&error_description=${encodeURIComponent(response.error.description)}&callback_url=${encodeURIComponent(callbackUrl)}`;
                         window.location.href = failureUrl;
                     }
