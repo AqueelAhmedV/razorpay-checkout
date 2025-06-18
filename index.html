@@ -60,19 +60,27 @@
     </div>
 
     <script>
-        // Hardcoded Razorpay Key ID - Change this to your actual key
-        const RAZORPAY_KEY_ID = 'rzp_test_your_key_id_here';
-        
         // Get query parameters
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
 
+        // Decode base64 key ID
+        function decodeKeyId(encodedKey) {
+            try {
+                return atob(encodedKey);
+            } catch (error) {
+                console.error('Error decoding key ID:', error);
+                return null;
+            }
+        }
+
         // Initialize Razorpay payment
         function initializePayment() {
             const subscriptionId = getQueryParam('subscription_id');
             const callbackUrl = getQueryParam('callback_url');
+            const encodedKeyId = getQueryParam('key_id'); // Base64 encoded key ID
             
             // Hide error div and show loading
             document.getElementById('error').style.display = 'none';
@@ -89,9 +97,21 @@
                 return;
             }
 
+            if (!encodedKeyId) {
+                showError('Razorpay Key ID is required');
+                return;
+            }
+
+            // Decode the base64 key ID
+            const razorpayKeyId = decodeKeyId(encodedKeyId);
+            if (!razorpayKeyId) {
+                showError('Invalid Razorpay Key ID format');
+                return;
+            }
+
             // Razorpay options
             const options = {
-                key: RAZORPAY_KEY_ID,
+                key: razorpayKeyId,
                 subscription_id: subscriptionId, // Using subscription_id instead of order_id
                 name: 'Your App Name',
                 description: 'Subscription Payment',
