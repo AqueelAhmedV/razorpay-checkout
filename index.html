@@ -111,7 +111,6 @@
                 showError('Invalid Razorpay Key ID format');
                 return;
             }
-            alert(razorpayKeyId);
             // Razorpay options
             const options = {
                 key: razorpayKeyId,
@@ -119,15 +118,38 @@
                 name: planName,
                 description: planDescription,
                 image: window.location.origin + '/logo.png',
-                callback_url: callbackUrl,
-                // handler: function (response) {
-                //     // Payment successful
-                //     console.log('Payment successful:', response);
-                    
-                //     // Redirect to success page with payment details
-                //     const successUrl = `success.html?subscription_id=${subscriptionId}&payment_id=${response.razorpay_payment_id}&signature=${response.razorpay_signature}&callback_url=${encodeURIComponent(callbackUrl)}`;
-                //     window.location.href = successUrl;
-                // },
+                handler: async function (response) {
+                    // Payment successful
+                    try {
+                        const verifyPaymentResponse = await fetch(callbackUrl, {
+                            method: 'POST',
+                            headers: {
+                                'action': 'verify_payment',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                razorpay_subscription_id: subscriptionId,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+                        if (!verifyPaymentResponse.ok) {
+                            throw new Error('Failed to verify payment');
+                        }
+                        const verifyPaymentData = await verifyPaymentResponse.json();
+                        if (verifyPaymentData['is_payment_verified'] === true) {
+                            const successUrl = `success.html?subscription_id=${subscriptionId}&payment_id=${response.razorpay_payment_id}&signature=${response.razorpay_signature}&callback_url=${encodeURIComponent(callbackUrl)}`;
+                            window.location.href = successUrl;
+                        } else {
+                            throw new Error('Payment verification failed');
+                        }
+                    } catch (error) {
+                        console.error('Error verifying payment:', error);
+                        showError('Failed to verify payment. Please try again.');
+                        const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=payment_verification_failed&error_code=${response.error.code}&error_description=${encodeURIComponent(response.error.description)}&callback_url=${encodeURIComponent(callbackUrl)}`;
+                        window.location.href = failureUrl;
+                    }
+                },
                 prefill: {
                     // You can prefill customer details if available from query params
                     name: getQueryParam('customer_name') || '',
@@ -136,27 +158,26 @@
                 },
                 notes: {
                     subscription_id: subscriptionId,
-                    callback_url: callbackUrl
                 },
                 theme: {
                     color: themeColor
                 },
-                // modal: {
-                //     ondismiss: function() {
-                //         // Payment cancelled/dismissed
-                //         console.log('Payment cancelled');
+                modal: {
+                    ondismiss: function() {
+                        // Payment cancelled/dismissed
+                        console.log('Payment cancelled');
                         
-                //         // Redirect to failure page
-                //         const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=cancelled&callback_url=${encodeURIComponent(callbackUrl)}`;
-                //         window.location.href = failureUrl;
-                //     }
-                // }
+                        // Redirect to failure page
+                        const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=cancelled&callback_url=${encodeURIComponent(callbackUrl)}`;
+                        window.location.href = failureUrl;
+                    }
+                }
             };
 
             // Create Razorpay instance and open checkout
             try {
                 const rzp = new Razorpay(options);
-                
+
                 rzp.on('payment.failed', function (response) {
                     // Payment failed
                     console.log('Payment failed:', response.error);
