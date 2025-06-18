@@ -81,6 +81,9 @@
             const subscriptionId = getQueryParam('subscription_id');
             const callbackUrl = getQueryParam('callback_url');
             const encodedKeyId = getQueryParam('key_id'); // Base64 encoded key ID
+            const planName = getQueryParam('plan_name') || 'Your App Name';
+            const planDescription = getQueryParam('plan_description') || 'Subscription Payment';
+            const themeColor = getQueryParam('theme_color') || '#3399cc';
             
             // Hide error div and show loading
             document.getElementById('error').style.display = 'none';
@@ -113,8 +116,8 @@
             const options = {
                 key: razorpayKeyId,
                 subscription_id: subscriptionId, // Using subscription_id instead of order_id
-                name: 'Your App Name',
-                description: 'Subscription Payment',
+                name: planName,
+                description: planDescription,
                 image: 'https://your-logo-url.com/logo.png', // Optional: Add your logo
                 handler: function (response) {
                     // Payment successful
@@ -135,7 +138,7 @@
                     callback_url: callbackUrl
                 },
                 theme: {
-                    color: '#3399cc'
+                    color: themeColor
                 },
                 modal: {
                     ondismiss: function() {
