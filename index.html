@@ -111,6 +111,26 @@
                 showError('Invalid Razorpay Key ID format');
                 return;
             }
+
+            // Define checkout origin outside of handler context
+            const checkoutOrigin = window.location.origin;
+            
+            // Helper functions to construct URLs
+            function createSuccessUrl(paymentId, signature) {
+                return `${checkoutOrigin}/success.html?subscription_id=${subscriptionId}&payment_id=${paymentId}&signature=${signature}&callback_url=${encodeURIComponent(callbackUrl)}`;
+            }
+            
+            function createFailureUrl(reason, errorCode = '', errorDescription = '') {
+                let url = `${checkoutOrigin}/failure.html?subscription_id=${subscriptionId}&reason=${reason}&callback_url=${encodeURIComponent(callbackUrl)}`;
+                if (errorCode) {
+                    url += `&error_code=${errorCode}`;
+                }
+                if (errorDescription) {
+                    url += `&error_description=${encodeURIComponent(errorDescription)}`;
+                }
+                return url;
+            }
+                        
             // Razorpay options
             const options = {
                 key: razorpayKeyId,
@@ -120,7 +140,6 @@
                 image: window.location.origin + '/logo.png',
                 handler: async function (response) {
                     // Payment successful
-                    alert(callbackUrl);
                     try {
                         const verifyPaymentResponse = await fetch(callbackUrl, {
                             method: 'POST',
@@ -139,16 +158,14 @@
                         }
                         const verifyPaymentData = await verifyPaymentResponse.json();
                         if (verifyPaymentData['is_payment_verified'] === true) {
-                            const successUrl = `success.html?subscription_id=${subscriptionId}&payment_id=${response.razorpay_payment_id}&signature=${response.razorpay_signature}&callback_url=${encodeURIComponent(callbackUrl)}`;
-                            window.location.href = successUrl;
+                            window.location.href = createSuccessUrl(response.razorpay_payment_id, response.razorpay_signature);
                         } else {
                             throw new Error('Payment verification failed');
                         }
                     } catch (error) {
                         console.error('Error verifying payment:', error);
                         showError('Failed to verify payment. Please try again. ' + error);
-                        const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=payment_verification_failed&error_code=${response.error.code}&error_description=${encodeURIComponent(response.error.description)}&callback_url=${encodeURIComponent(callbackUrl)}`;
-                        window.location.href = failureUrl;
+                        window.location.href = createFailureUrl('payment_verification_failed', '', error.message);
                     }
                 },
                 prefill: {
@@ -169,8 +186,7 @@
                         console.log('Payment cancelled');
                         
                         // Redirect to failure page
-                        const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=cancelled&callback_url=${encodeURIComponent(callbackUrl)}`;
-                        window.location.href = failureUrl;
+                        window.location.href = createFailureUrl('cancelled');
                     }
                 }
             };
@@ -184,8 +200,7 @@
                     console.log('Payment failed:', response.error);
                     
                     // Redirect to failure page with error details
-                    const failureUrl = `failure.html?subscription_id=${subscriptionId}&reason=failed&error_code=${response.error.code}&error_description=${encodeURIComponent(response.error.description)}&callback_url=${encodeURIComponent(callbackUrl)}`;
-                    window.location.href = failureUrl;
+                            window.location.href = createFailureUrl('failed', response.error.code, response.error.description);
                 });
 
                 // Open Razorpay checkout
