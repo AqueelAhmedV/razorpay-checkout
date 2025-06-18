@@ -118,7 +118,7 @@
                 subscription_id: subscriptionId, // Using subscription_id instead of order_id
                 name: planName,
                 description: planDescription,
-                image: 'https://your-logo-url.com/logo.png', // Optional: Add your logo
+                image: window.location.origin + '/logo.png',
                 handler: function (response) {
                     // Payment successful
                     console.log('Payment successful:', response);
