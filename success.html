@@ -60,6 +60,7 @@
             const paymentId = getQueryParam('payment_id');
             const signature = getQueryParam('signature');
             const callbackUrl = getQueryParam('callback_url');
+            const razorpayPlanId = getQueryParam('razorpay_plan_id');
 
             // Create deep link URL
             let deepLinkUrl = 'cri://crink.app/purchase-subscription';
@@ -70,6 +71,7 @@
             if (subscriptionId) params.append('subscription_id', subscriptionId);
             if (paymentId) params.append('payment_id', paymentId);
             if (signature) params.append('signature', signature);
+            if (razorpayPlanId) params.append('razorpay_plan_id', razorpayPlanId);
             
             if (params.toString()) {
                 deepLinkUrl += '?' + params.toString();

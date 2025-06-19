@@ -107,6 +107,7 @@
             const errorCode = getQueryParam('error_code');
             const errorDescription = getQueryParam('error_description');
             const callbackUrl = getQueryParam('callback_url');
+            const razorpayPlanId = getQueryParam('razorpay_plan_id');
 
             // Create deep link URL
             let deepLinkUrl = 'cri://crink.app/purchase-subscription';
@@ -118,6 +119,7 @@
             if (reason) params.append('reason', reason);
             if (errorCode) params.append('error_code', errorCode);
             if (errorDescription) params.append('error_description', errorDescription);
+            if (razorpayPlanId) params.append('razorpay_plan_id', razorpayPlanId);
             
             if (params.toString()) {
                 deepLinkUrl += '?' + params.toString();

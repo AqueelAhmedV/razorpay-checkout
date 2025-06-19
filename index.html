@@ -84,6 +84,7 @@
             const planName = getQueryParam('plan_name') || 'Your App Name';
             const planDescription = getQueryParam('plan_description') || 'Subscription Payment';
             const themeColor = getQueryParam('theme_color') || '#3399cc';
+            const razorpayPlanId = getQueryParam('razorpay_plan_id'); // Razorpay plan ID
             
             // Hide error div and show loading
             document.getElementById('error').style.display = 'none';
@@ -117,11 +118,18 @@
             
             // Helper functions to construct URLs
             function createSuccessUrl(paymentId, signature) {
-                return `${checkoutOrigin}/success.html?subscription_id=${subscriptionId}&payment_id=${paymentId}&signature=${signature}&callback_url=${encodeURIComponent(callbackUrl)}`;
+                let url = `${checkoutOrigin}/success.html?subscription_id=${subscriptionId}&payment_id=${paymentId}&signature=${signature}&callback_url=${encodeURIComponent(callbackUrl)}`;
+                if (razorpayPlanId) {
+                    url += `&razorpay_plan_id=${razorpayPlanId}`;
+                }
+                return url;
             }
             
             function createFailureUrl(reason, errorCode = '', errorDescription = '') {
                 let url = `${checkoutOrigin}/failure.html?subscription_id=${subscriptionId}&reason=${reason}&callback_url=${encodeURIComponent(callbackUrl)}`;
+                if (razorpayPlanId) {
+                    url += `&razorpay_plan_id=${razorpayPlanId}`;
+                }
                 if (errorCode) {
                     url += `&error_code=${errorCode}`;
                 }
