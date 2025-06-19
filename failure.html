@@ -109,10 +109,11 @@
             const callbackUrl = getQueryParam('callback_url');
 
             // Create deep link URL
-            let deepLinkUrl = 'cri://crink.app/purchase-failure';
+            let deepLinkUrl = 'cri://crink.app/purchase-subscription';
             
             // Add query parameters
             const params = new URLSearchParams();
+            params.append('status', 'failed');
             if (subscriptionId) params.append('subscription_id', subscriptionId);
             if (reason) params.append('reason', reason);
             if (errorCode) params.append('error_code', errorCode);

@@ -62,10 +62,11 @@
             const callbackUrl = getQueryParam('callback_url');
 
             // Create deep link URL
-            let deepLinkUrl = 'cri://crink.app/purchase-success';
+            let deepLinkUrl = 'cri://crink.app/purchase-subscription';
             
             // Add query parameters
             const params = new URLSearchParams();
+            params.append('status', 'success');
             if (subscriptionId) params.append('subscription_id', subscriptionId);
             if (paymentId) params.append('payment_id', paymentId);
             if (signature) params.append('signature', signature);
