@@ -12,89 +12,39 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            color: white;
+            background-color: #f5f5f5;
         }
         .container {
             text-align: center;
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
-            padding: 3rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-width: 500px;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 400px;
             width: 100%;
         }
         .success-icon {
-            font-size: 4rem;
             color: #27ae60;
+            font-size: 4rem;
             margin-bottom: 1rem;
         }
-        .payment-details {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-            text-align: left;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 0.5rem 0;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        .detail-label {
-            font-weight: bold;
-            color: #495057;
-        }
-        .detail-value {
-            color: #6c757d;
-            word-break: break-all;
-        }
-        .redirect-info {
-            background: #e3f2fd;
-            border: 1px solid #bbdefb;
-            padding: 1rem;
-            border-radius: 6px;
-            margin: 1.5rem 0;
-            color: #1565c0;
+        .loading {
+            font-size: 18px;
+            color: #666;
         }
         .countdown {
             font-weight: bold;
-            color: #e67e22;
-        }
-        .return-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 1rem;
-        }
-        .return-btn:hover {
-            background-color: #2980b9;
+            color: #3498db;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="success-icon">✅</div>
-        <h1>Payment Successful!</h1>
-        <p>Your payment has been processed successfully.</p>
-        
-        <div class="payment-details" id="payment-details">
-            <!-- Payment details will be populated by JavaScript -->
-        </div>
-        
-        <div class="redirect-info">
-            <p>🔄 Redirecting to app in <span class="countdown" id="countdown">5</span> seconds...</p>
-            <button class="return-btn" onclick="redirectToApp()">Return to App Now</button>
+        <div class="success-icon">✓</div>
+        <h2>Payment Successful!</h2>
+        <p>Your subscription has been activated successfully.</p>
+        <div class="loading">
+            <p>Redirecting to app in <span id="countdown" class="countdown">3</span> seconds...</p>
         </div>
     </div>
 
@@ -105,75 +55,51 @@
             return urlParams.get(param);
         }
 
-        // Format payment details
-        function displayPaymentDetails() {
-            const subscriptionId = getQueryParam('subscription_id');
-            const paymentId = getQueryParam('payment_id');
-            const signature = getQueryParam('signature');
-            
-            const detailsContainer = document.getElementById('payment-details');
-            
-            const details = [
-                { label: 'Subscription ID', value: subscriptionId || 'N/A' },
-                { label: 'Payment ID', value: paymentId || 'N/A' },
-                { label: 'Signature', value: signature ? signature.substring(0, 20) + '...' : 'N/A' },
-                { label: 'Status', value: 'Completed' },
-                { label: 'Date & Time', value: new Date().toLocaleString() }
-            ];
-            
-            detailsContainer.innerHTML = details.map(detail => `
-                <div class="detail-row">
-                    <span class="detail-label">${detail.label}:</span>
-                    <span class="detail-value">${detail.value}</span>
-                </div>
-            `).join('');
-        }
-
-        // Redirect to Flutter app
         function redirectToApp() {
-            const callbackUrl = getQueryParam('callback_url');
             const subscriptionId = getQueryParam('subscription_id');
             const paymentId = getQueryParam('payment_id');
             const signature = getQueryParam('signature');
+            const callbackUrl = getQueryParam('callback_url');
+
+            // Create deep link URL
+            let deepLinkUrl = 'cri://crink.app/purchase-success';
             
-            if (callbackUrl) {
-                // Create success callback URL with payment details
-                const successCallback = `${decodeURIComponent(callbackUrl)}?status=success&subscription_id=${subscriptionId}&payment_id=${paymentId}&signature=${signature}`;
-                console.log('Redirecting to:', successCallback);
-                
-                // Try to open the deeplink
-                window.location.href = successCallback;
-                
-                // Fallback: if deeplink doesn't work, show message
-                setTimeout(() => {
-                    alert('If the app didn\'t open automatically, please copy this URL and paste it in your browser:\n\n' + successCallback);
-                }, 2000);
-            } else {
-                alert('No callback URL provided. Please return to your app manually.');
+            // Add query parameters
+            const params = new URLSearchParams();
+            if (subscriptionId) params.append('subscription_id', subscriptionId);
+            if (paymentId) params.append('payment_id', paymentId);
+            if (signature) params.append('signature', signature);
+            
+            if (params.toString()) {
+                deepLinkUrl += '?' + params.toString();
             }
-        }
 
-        // Countdown timer
-        function startCountdown() {
-            let seconds = 5;
-            const countdownElement = document.getElementById('countdown');
-            
-            const interval = setInterval(() => {
-                seconds--;
-                countdownElement.textContent = seconds;
-                
-                if (seconds <= 0) {
-                    clearInterval(interval);
-                    redirectToApp();
+            console.log('Redirecting to:', deepLinkUrl);
+
+            // Try to redirect to app
+            window.location.href = deepLinkUrl;
+
+            // Fallback: if deep link doesn't work, redirect to callback URL after a delay
+            setTimeout(() => {
+                if (callbackUrl) {
+                    window.location.href = decodeURIComponent(callbackUrl);
                 }
-            }, 1000);
+            }, 2000);
         }
 
-        // Initialize page
-        window.onload = function() {
-            displayPaymentDetails();
-            startCountdown();
-        };
+        // Countdown and redirect
+        let countdown = 3;
+        const countdownElement = document.getElementById('countdown');
+        
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                redirectToApp();
+            }
+        }, 1000);
     </script>
 </body>
 </html> 

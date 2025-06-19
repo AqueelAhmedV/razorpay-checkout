@@ -12,117 +12,65 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
+            background-color: #f5f5f5;
         }
         .container {
             text-align: center;
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
-            padding: 3rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-width: 500px;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 400px;
             width: 100%;
         }
-        .failure-icon {
-            font-size: 4rem;
+        .error-icon {
             color: #e74c3c;
+            font-size: 4rem;
             margin-bottom: 1rem;
         }
-        .failure-details {
-            background: #fff5f5;
-            border: 1px solid #feb2b2;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-            text-align: left;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 0.5rem 0;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #fee;
-        }
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        .detail-label {
-            font-weight: bold;
-            color: #742a2a;
-        }
-        .detail-value {
-            color: #9b2c2c;
-            word-break: break-all;
-        }
-        .redirect-info {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 1rem;
-            border-radius: 6px;
-            margin: 1.5rem 0;
-            color: #856404;
+        .loading {
+            font-size: 18px;
+            color: #666;
         }
         .countdown {
             font-weight: bold;
-            color: #e67e22;
+            color: #3498db;
         }
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 1.5rem;
+        .error-details {
+            background: #ffeaea;
+            border: 1px solid #ffcccb;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            text-align: left;
         }
         .retry-btn {
-            background-color: #e67e22;
+            background-color: #3498db;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            margin: 1rem 0.5rem;
         }
         .retry-btn:hover {
-            background-color: #d35400;
-        }
-        .return-btn {
-            background-color: #95a5a6;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .return-btn:hover {
-            background-color: #7f8c8d;
-        }
-        .reason-cancelled {
-            color: #f39c12;
-        }
-        .reason-failed {
-            color: #e74c3c;
+            background-color: #2980b9;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="failure-icon">❌</div>
-        <h1>Payment Failed</h1>
-        <p id="failure-message">We couldn't process your payment.</p>
+        <div class="error-icon">✗</div>
+        <h2>Payment Failed</h2>
+        <p>Your payment could not be processed.</p>
         
-        <div class="failure-details" id="failure-details">
-            <!-- Failure details will be populated by JavaScript -->
+        <div class="error-details" id="error-details">
+            <!-- Error details will be populated by JavaScript -->
         </div>
         
-        <div class="redirect-info">
-            <p>🔄 Redirecting to app in <span class="countdown" id="countdown">10</span> seconds...</p>
-        </div>
-        
-        <div class="button-group">
-            <button class="retry-btn" onclick="retryPayment()">Try Again</button>
-            <button class="return-btn" onclick="redirectToApp()">Return to App</button>
+        <div class="loading">
+            <p>Redirecting to app in <span id="countdown" class="countdown">5</span> seconds...</p>
+            <button class="retry-btn" onclick="redirectToApp()">Return to App Now</button>
         </div>
     </div>
 
@@ -133,104 +81,77 @@
             return urlParams.get(param);
         }
 
-        // Format failure details
-        function displayFailureDetails() {
+        // Display error details
+        function displayErrorDetails() {
             const subscriptionId = getQueryParam('subscription_id');
-            const reason = getQueryParam('reason');
+            const reason = getQueryParam('reason') || 'Unknown error';
             const errorCode = getQueryParam('error_code');
             const errorDescription = getQueryParam('error_description');
             
-            const detailsContainer = document.getElementById('failure-details');
-            const messageElement = document.getElementById('failure-message');
+            const detailsContainer = document.getElementById('error-details');
             
-            // Customize message based on reason
-            if (reason === 'cancelled') {
-                messageElement.textContent = 'Payment was cancelled.';
-                messageElement.className = 'reason-cancelled';
-            } else if (reason === 'failed') {
-                messageElement.textContent = 'Payment processing failed.';
-                messageElement.className = 'reason-failed';
+            let errorMessage = `<strong>Reason:</strong> ${reason}`;
+            if (errorCode) {
+                errorMessage += `<br><strong>Error Code:</strong> ${errorCode}`;
+            }
+            if (errorDescription) {
+                errorMessage += `<br><strong>Description:</strong> ${errorDescription}`;
             }
             
-            const details = [
-                { label: 'Subscription ID', value: subscriptionId || 'N/A' },
-                { label: 'Reason', value: reason || 'Unknown' },
-                { label: 'Error Code', value: errorCode || 'N/A' },
-                { label: 'Description', value: errorDescription ? decodeURIComponent(errorDescription) : 'N/A' },
-                { label: 'Date & Time', value: new Date().toLocaleString() }
-            ];
-            
-            detailsContainer.innerHTML = details.map(detail => `
-                <div class="detail-row">
-                    <span class="detail-label">${detail.label}:</span>
-                    <span class="detail-value">${detail.value}</span>
-                </div>
-            `).join('');
+            detailsContainer.innerHTML = errorMessage;
         }
 
-        // Retry payment
-        function retryPayment() {
-            const subscriptionId = getQueryParam('subscription_id');
-            const callbackUrl = getQueryParam('callback_url');
-            
-            // Redirect back to main page with same parameters
-            const retryUrl = `index.html?subscription_id=${subscriptionId}&callback_url=${encodeURIComponent(callbackUrl)}`;
-            window.location.href = retryUrl;
-        }
-
-        // Redirect to Flutter app
         function redirectToApp() {
-            const callbackUrl = getQueryParam('callback_url');
             const subscriptionId = getQueryParam('subscription_id');
             const reason = getQueryParam('reason');
             const errorCode = getQueryParam('error_code');
             const errorDescription = getQueryParam('error_description');
+            const callbackUrl = getQueryParam('callback_url');
+
+            // Create deep link URL
+            let deepLinkUrl = 'cri://crink.app/purchase-failure';
             
-            if (callbackUrl) {
-                // Create failure callback URL with error details
-                let failureCallback = `${decodeURIComponent(callbackUrl)}?status=failed&subscription_id=${subscriptionId}&reason=${reason}`;
-                
-                if (errorCode) {
-                    failureCallback += `&error_code=${errorCode}`;
-                }
-                if (errorDescription) {
-                    failureCallback += `&error_description=${encodeURIComponent(errorDescription)}`;
-                }
-                
-                console.log('Redirecting to:', failureCallback);
-                
-                // Try to open the deeplink
-                window.location.href = failureCallback;
-                
-                // Fallback: if deeplink doesn't work, show message
-                setTimeout(() => {
-                    alert('If the app didn\'t open automatically, please copy this URL and paste it in your browser:\n\n' + failureCallback);
-                }, 2000);
-            } else {
-                alert('No callback URL provided. Please return to your app manually.');
+            // Add query parameters
+            const params = new URLSearchParams();
+            if (subscriptionId) params.append('subscription_id', subscriptionId);
+            if (reason) params.append('reason', reason);
+            if (errorCode) params.append('error_code', errorCode);
+            if (errorDescription) params.append('error_description', errorDescription);
+            
+            if (params.toString()) {
+                deepLinkUrl += '?' + params.toString();
             }
+
+            console.log('Redirecting to:', deepLinkUrl);
+
+            // Try to redirect to app
+            window.location.href = deepLinkUrl;
+
+            // Fallback: if deep link doesn't work, redirect to callback URL after a delay
+            setTimeout(() => {
+                if (callbackUrl) {
+                    window.location.href = decodeURIComponent(callbackUrl);
+                }
+            }, 2000);
         }
 
-        // Countdown timer
-        function startCountdown() {
-            let seconds = 10;
-            const countdownElement = document.getElementById('countdown');
+        // Countdown and redirect
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdown');
+        
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
             
-            const interval = setInterval(() => {
-                seconds--;
-                countdownElement.textContent = seconds;
-                
-                if (seconds <= 0) {
-                    clearInterval(interval);
-                    redirectToApp();
-                }
-            }, 1000);
-        }
+            if (countdown <= 0) {
+                clearInterval(timer);
+                redirectToApp();
+            }
+        }, 1000);
 
         // Initialize page
         window.onload = function() {
-            displayFailureDetails();
-            startCountdown();
+            displayErrorDetails();
         };
     </script>
 </body>
