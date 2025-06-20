@@ -81,13 +81,6 @@
 
             // Try to redirect to app
             window.location.href = deepLinkUrl;
-
-            // Fallback: if deep link doesn't work, redirect to callback URL after a delay
-            setTimeout(() => {
-                if (callbackUrl) {
-                    window.location.href = decodeURIComponent(callbackUrl);
-                }
-            }, 2000);
         }
 
         // Countdown and redirect
